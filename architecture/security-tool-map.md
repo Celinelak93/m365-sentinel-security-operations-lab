@@ -1,10 +1,5 @@
 
 
-```markdown
-# Security Tool Map
-
-## Purpose
-
 This document maps each security area to the Microsoft tools used for prevention, detection, investigation, and response.
 
 | Security Area | Prevention | Detection | Investigation | Response |
