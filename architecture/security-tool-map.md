@@ -1,5 +1,4 @@
 
-### `architecture/security-tool-map.md`
 
 ```markdown
 # Security Tool Map
