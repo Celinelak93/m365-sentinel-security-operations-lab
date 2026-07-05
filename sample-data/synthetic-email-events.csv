@@ -1,0 +1,5 @@
+NetworkMessageId,Timestamp,SenderFromAddress,SenderMailFromAddress,SenderIPv4,RecipientEmailAddress,Subject,EmailDirection,DeliveryAction,DeliveryLocation,ThreatTypes,DetectionMethods,ConfidenceLevel
+a1b2c3d4-email-001,2026-07-05T08:10:02Z,security-alerts@fake-login.example.com,bounce@fake-login.example.com,185.199.108.153,anna.korhonen@contoso.com,Urgent Microsoft 365 password verification required,Inbound,Delivered,Inbox,Phish,AntiPhish;Safe Links,High
+a1b2c3d4-email-002,2026-07-05T08:12:10Z,billing@fake-invoice.example.net,bounce@fake-invoice.example.net,203.0.113.88,mikko.lahti@contoso.com,Invoice payment review required,Inbound,Delivered,Junk,Phish,AntiPhish;Safe Links,Medium
+a1b2c3d4-email-003,2026-07-05T08:18:33Z,shared-docs@external-files.example.org,bounce@external-files.example.org,198.51.100.200,elina.saarinen@contoso.com,Shared document available for download,Inbound,Delivered,Inbox,Malware,Safe Attachments;Safe Links,High
+a1b2c3d4-email-004,2026-07-05T08:59:50Z,news@newsletter.example.com,news@newsletter.example.com,192.0.2.60,joonas.virtanen@contoso.com,Weekly security newsletter,Inbound,Delivered,Inbox,None,None,Low
