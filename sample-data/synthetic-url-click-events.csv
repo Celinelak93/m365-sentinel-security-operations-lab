@@ -1,0 +1,6 @@
+Timestamp,ReportId,AccountUpn,IPAddress,Url,UrlChain,ActionType,IsClickedThrough,ThreatTypes,DetectionMethods,NetworkMessageId,Workload
+2026-07-05T08:14:22Z,10001,anna.korhonen@contoso.com,203.0.113.24,https://login-security-check.example.com,https://login-security-check.example.com,ClickAllowed,true,Phish,Safe Links,a1b2c3d4-email-001,Email
+2026-07-05T08:16:04Z,10002,mikko.lahti@contoso.com,198.51.100.18,https://invoice-review.example.net,https://invoice-review.example.net,ClickBlocked,false,Phish,Safe Links,a1b2c3d4-email-002,Email
+2026-07-05T08:21:45Z,10003,elina.saarinen@contoso.com,192.0.2.44,https://fileshare-update.example.org,https://fileshare-update.example.org,ClickAllowed,true,Malware,Safe Links,a1b2c3d4-email-003,Email
+2026-07-05T09:02:11Z,10004,joonas.virtanen@contoso.com,203.0.113.77,https://newsletter.example.com,https://newsletter.example.com,ClickAllowed,false,None,None,a1b2c3d4-email-004,Email
+2026-07-05T09:18:39Z,10005,anna.korhonen@contoso.com,203.0.113.24,https://login-security-check.example.com,https://login-security-check.example.com,ClickAllowed,true,Phish,Safe Links,a1b2c3d4-email-001,Email
