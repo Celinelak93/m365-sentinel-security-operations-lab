@@ -7,3 +7,183 @@ KQL query reference
 Entity mappings
 Incident response actions
 False positive guidance
+
+id: 8f6b6d18-5b8d-4b91-9a1f-malicious-url-clicked
+name: Malicious URL Clicked From Email
+description: |
+  Detects users who clicked suspicious or malicious URLs from email messages.
+  This rule supports phishing investigation by correlating URL click activity
+  with email delivery details.
+
+severity: High
+status: Available
+kind: Scheduled
+
+requiredDataConnectors:
+  - connectorId: MicrosoftThreatProtection
+    dataTypes:
+      - UrlClickEvents
+      - EmailEvents
+
+queryFrequency: 1h
+queryPeriod: 24h
+triggerOperator: gt
+triggerThreshold: 0
+
+tactics:
+  - InitialAccess
+  - CredentialAccess
+
+relevantTechniques:
+  - T1566
+  - T1566.002
+  - T1056
+
+query: |
+  let suspicious_clicks =
+      UrlClickEvents
+      | where Workload =~ "Email"
+      | where ThreatTypes has_any ("Phish", "Malware")
+          or ActionType =~ "ClickAllowed"
+          or IsClickedThrough == true
+      | project
+          Timestamp,
+          ReportId,
+          AccountUpn,
+          IPAddress,
+          Url,
+          UrlChain,
+          ActionType,
+          IsClickedThrough,
+          ThreatTypes,
+          DetectionMethods,
+          NetworkMessageId,
+          Workload;
+  suspicious_clicks
+  | join kind=leftouter (
+      EmailEvents
+      | project
+          NetworkMessageId,
+          EmailTimestamp = Timestamp,
+          SenderFromAddress,
+          SenderMailFromAddress,
+          SenderIPv4,
+          RecipientEmailAddress,
+          Subject,
+          EmailDirection,
+          DeliveryAction,
+          DeliveryLocation,
+          EmailThreatTypes = ThreatTypes,
+          EmailDetectionMethods = DetectionMethods,
+          ConfidenceLevel
+  ) on NetworkMessageId
+  | extend Severity = case(
+      ThreatTypes has_any ("Phish", "Malware") and ActionType =~ "ClickAllowed", "High",
+      IsClickedThrough == true, "High",
+      ActionType =~ "ClickAllowed", "Medium",
+      "Low"
+  )
+  | project
+      Timestamp,
+      ReportId,
+      Severity,
+      AccountUpn,
+      RecipientEmailAddress,
+      IPAddress,
+      Url,
+      UrlChain,
+      ActionType,
+      IsClickedThrough,
+      ThreatTypes,
+      DetectionMethods,
+      SenderFromAddress,
+      SenderMailFromAddress,
+      SenderIPv4,
+      Subject,
+      EmailDirection,
+      DeliveryAction,
+      DeliveryLocation,
+      ConfidenceLevel,
+      NetworkMessageId
+  | order by Timestamp desc
+
+entityMappings:
+  - entityType: Account
+    fieldMappings:
+      - identifier: FullName
+        columnName: AccountUpn
+
+  - entityType: URL
+    fieldMappings:
+      - identifier: Url
+        columnName: Url
+
+  - entityType: IP
+    fieldMappings:
+      - identifier: Address
+        columnName: IPAddress
+
+  - entityType: MailMessage
+    fieldMappings:
+      - identifier: NetworkMessageId
+        columnName: NetworkMessageId
+
+customDetails:
+  ClickAction: ActionType
+  ClickAllowed: IsClickedThrough
+  ThreatTypes: ThreatTypes
+  SenderAddress: SenderFromAddress
+  EmailSubject: Subject
+  DeliveryLocation: DeliveryLocation
+  DetectionMethods: DetectionMethods
+
+incidentConfiguration:
+  createIncident: true
+  groupingConfiguration:
+    enabled: true
+    reopenClosedIncident: false
+    lookbackDuration: 24h
+    matchingMethod: Selected
+    groupByEntities:
+      - Account
+      - URL
+    groupByCustomDetails:
+      - SenderAddress
+    groupByAlertDetails: []
+
+alertDetailsOverride:
+  alertDisplayNameFormat: "Malicious URL click detected for {{AccountUpn}}"
+  alertDescriptionFormat: |
+    User {{AccountUpn}} clicked a suspicious or malicious URL from an email.
+    Sender: {{SenderFromAddress}}
+    Subject: {{Subject}}
+    URL: {{Url}}
+  alertSeverityColumnName: Severity
+
+eventGroupingSettings:
+  aggregationKind: SingleAlert
+
+suppressionEnabled: false
+suppressionDuration: 5h
+
+falsePositives:
+  - Security awareness testing
+  - Internal phishing simulation
+  - Safe Links test clicks
+  - Security analyst investigation activity
+
+responseActions:
+  - Review the related email message and sender.
+  - Determine whether the click was blocked or allowed.
+  - Check user sign-in activity after the click.
+  - Review mailbox rules and forwarding settings.
+  - Investigate endpoint activity if the URL was allowed.
+  - Reset password and revoke sessions if credential compromise is suspected.
+  - Block the sender, domain, or URL if malicious activity is confirmed.
+
+relatedFiles:
+  - detections/email/malicious-url-clicked.kql
+  - playbooks/phishing-user-clicked-url.md
+  - governance/security-control-inventory.md
+
+version: 1.0.0
