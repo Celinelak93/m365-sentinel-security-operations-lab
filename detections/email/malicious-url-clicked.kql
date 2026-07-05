@@ -1,0 +1,81 @@
+// Detection: Malicious URL Clicked From Email
+// Purpose:
+// Identify users who clicked suspicious or malicious URLs from email messages.
+//
+// Data sources:
+// - UrlClickEvents
+// - EmailEvents
+//
+// Related playbook:
+// playbooks/phishing-user-clicked-url.md
+//
+// MITRE ATT&CK:
+// - Initial Access: Phishing
+// - Credential Access: Input Capture / Credential Harvesting
+
+let suspicious_clicks =
+    UrlClickEvents
+    | where Workload =~ "Email"
+    | where ThreatTypes has_any ("Phish", "Malware")
+        or ActionType =~ "ClickAllowed"
+        or IsClickedThrough == true
+    | project
+        Timestamp,
+        ReportId,
+        AccountUpn,
+        IPAddress,
+        Url,
+        UrlChain,
+        ActionType,
+        IsClickedThrough,
+        ThreatTypes,
+        DetectionMethods,
+        NetworkMessageId,
+        Workload;
+suspicious_clicks
+| join kind=leftouter (
+    EmailEvents
+    | project
+        NetworkMessageId,
+        EmailTimestamp = Timestamp,
+        SenderFromAddress,
+        SenderMailFromAddress,
+        SenderIPv4,
+        RecipientEmailAddress,
+        Subject,
+        EmailDirection,
+        DeliveryAction,
+        DeliveryLocation,
+        EmailThreatTypes = ThreatTypes,
+        EmailDetectionMethods = DetectionMethods,
+        ConfidenceLevel
+) on NetworkMessageId
+| extend Severity = case(
+    ThreatTypes has_any ("Phish", "Malware") and ActionType =~ "ClickAllowed", "High",
+    IsClickedThrough == true, "High",
+    ActionType =~ "ClickAllowed", "Medium",
+    "Low"
+)
+| project
+    Timestamp,
+    ReportId,
+    Severity,
+    AccountUpn,
+    RecipientEmailAddress,
+    IPAddress,
+    Url,
+    UrlChain,
+    ActionType,
+    IsClickedThrough,
+    ThreatTypes,
+    DetectionMethods,
+    SenderFromAddress,
+    SenderMailFromAddress,
+    SenderIPv4,
+    Subject,
+    EmailDirection,
+    DeliveryAction,
+    DeliveryLocation,
+    ConfidenceLevel,
+    NetworkMessageId
+| order by Timestamp desc
